@@ -1,0 +1,168 @@
+id: 00000000-0000-0000-0000-000000000000
+name: nginx-backend-dev
+schemaVersion: designs.meshery.io/v1beta1
+version: 0.0.2
+components:
+    - id: 3f1c2a7e-9b4d-4e21-8a6f-1c5d7e9a2b10
+      schemaVersion: components.meshery.io/v1beta2
+      version: v1.0.0
+      displayName: backend
+      description: Dev ortamı için backend namespace'i
+      format: JSON
+      model: null
+      modelReference:
+        displayName: Kubernetes
+        id: 00000000-0000-0000-0000-000000000000
+        model:
+            version: v1.31.0
+        name: kubernetes
+        registrant:
+            kind: github
+        version: v1.31.0
+      styles: null
+      capabilities: null
+      status: null
+      metadata:
+        genealogy: ""
+        isAnnotation: false
+        isNamespaced: false
+        published: false
+        instanceDetails: {}
+        configurationUISchema: ""
+      configuration:
+        metadata:
+            labels:
+                app.kubernetes.io/part-of: nginx-backend-dev
+                env: dev
+            name: backend
+      component:
+        version: v1
+        kind: Namespace
+        schema: ""
+    - id: 8b01a04c-4ad0-4964-bce2-7930542ed397
+      schemaVersion: components.meshery.io/v1beta2
+      version: v1.0.0
+      displayName: nginx
+      description: backend namespace'inde 2 replika nginx web sunucusu
+      format: JSON
+      model: null
+      modelReference:
+        displayName: Kubernetes
+        id: 00000000-0000-0000-0000-000000000000
+        model:
+            version: v1.31.0
+        name: kubernetes
+        registrant:
+            kind: github
+        version: v1.31.0
+      styles: null
+      capabilities: null
+      status: null
+      metadata:
+        genealogy: ""
+        isAnnotation: false
+        isNamespaced: true
+        published: false
+        instanceDetails: {}
+        configurationUISchema: ""
+      configuration:
+        metadata:
+            labels:
+                app: nginx
+                env: dev
+            name: nginx
+            namespace: backend
+        spec:
+            minReadySeconds: 10
+            progressDeadlineSeconds: 120
+            replicas: 2
+            selector:
+                matchLabels:
+                    app: nginx
+            strategy:
+                rollingUpdate:
+                    maxSurge: 1
+                    maxUnavailable: 0
+                type: RollingUpdate
+            template:
+                metadata:
+                    labels:
+                        app: nginx
+                        env: dev
+                spec:
+                    containers:
+                        - image: nginx:1.27-alpine
+                          livenessProbe:
+                            httpGet:
+                                path: /
+                                port: http
+                            initialDelaySeconds: 15
+                            periodSeconds: 20
+                          name: nginx
+                          ports:
+                            - containerPort: 80
+                              name: http
+                          readinessProbe:
+                            httpGet:
+                                path: /
+                                port: http
+                            initialDelaySeconds: 5
+                            periodSeconds: 10
+                          resources:
+                            limits:
+                                cpu: 250m
+                                memory: 128Mi
+                            requests:
+                                cpu: 50m
+                                memory: 64Mi
+      component:
+        version: apps/v1
+        kind: Deployment
+        schema: ""
+    - id: c4e7f2a1-5d3b-4c8e-9f60-2b7a1d4e8c35
+      schemaVersion: components.meshery.io/v1beta2
+      version: v1.0.0
+      displayName: nginx-svc
+      description: nginx pod'larını cluster içinde 80 portundan yayınlar
+      format: JSON
+      model: null
+      modelReference:
+        displayName: Kubernetes
+        id: 00000000-0000-0000-0000-000000000000
+        model:
+            version: v1.31.0
+        name: kubernetes
+        registrant:
+            kind: github
+        version: v1.31.0
+      styles: null
+      capabilities: null
+      status: null
+      metadata:
+        genealogy: ""
+        isAnnotation: false
+        isNamespaced: true
+        published: false
+        instanceDetails: {}
+        configurationUISchema: ""
+      configuration:
+        metadata:
+            labels:
+                app: nginx
+                env: dev
+            name: nginx-svc
+            namespace: backend
+        spec:
+            ports:
+                - name: http
+                  port: 80
+                  protocol: TCP
+                  targetPort: http
+            selector:
+                app: nginx
+            type: ClusterIP
+      component:
+        version: v1
+        kind: Service
+        schema: ""
+relationships: []
